@@ -8,7 +8,7 @@ difference () {
     translate([66.5, 8.5, -2])
     cylinder(h=20, r = 1.5);
     translate([8.5, 36.5, -2])
-    cylinder(h=20, r = 1.5);
+    #cylinder(h=20, r = 1.5);
     translate([66.5, 36.5, -2])
     cylinder(h=20, r = 1.5);
     translate([9.5, 10.5, -2])
