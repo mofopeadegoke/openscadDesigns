@@ -11,9 +11,9 @@ difference () {
     #cylinder(h=20, r = 1.5);
     translate([68, 36.5, -2])
     cylinder(h=20, r = 1.5);
-    translate([11, 14.5, -2])
+    translate([11, 10.5, -2])
     cube([35, 19.5, 10]);
-    translate([60.7, 23.7, -2])
+    translate([59, 22.2, -2])
     #cylinder(h=20, r = 5);
  } 
  
