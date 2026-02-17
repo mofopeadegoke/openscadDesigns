@@ -249,11 +249,26 @@ bottom_height   = 69;
 top_height      = 100;  
 thickness       = 4;    
 
+// TM1638 Module Dimensions
+tm_hole_w = 68;    // Horizontal distance between screw holes
+tm_hole_h = 40;    // Vertical distance between screw holes
+tm_screw_d = 2.5;  // M2 Screw hole size
+tm_window_w = 64;  // Width of the main opening
+tm_window_h = 38;  // Height of the main opening
+
 total_height = bottom_height + thickness + top_height;
-
-linear_extrude(thickness)
-
 spc = thickness + 1;
+
+// Helper Module: TM1638 Pattern
+module tm1638_cutout() {
+    // 1. Main Window
+    square([tm_window_w, tm_window_h], center=true);
+    // 2. Mounting Holes
+    translate([tm_hole_w/2, tm_hole_h/2]) circle(d=tm_screw_d, $fn=20);
+    translate([-tm_hole_w/2, tm_hole_h/2]) circle(d=tm_screw_d, $fn=20);
+    translate([tm_hole_w/2, -tm_hole_h/2]) circle(d=tm_screw_d, $fn=20);
+    translate([-tm_hole_w/2, -tm_hole_h/2]) circle(d=tm_screw_d, $fn=20);
+}
 
 linear_extrude(thickness)
 difference() {
@@ -265,47 +280,57 @@ difference() {
             x_parts = 2, z_parts = 1, y_parts = 2
         );
         
-        // 2. Internal Tabs (Moved to sides)
+        // 2. Internal Tabs
         translate([-4, 0]) polygon([each finger_joint([0, 0], 32, 0, thickness, 4, true, false)]);
         translate([-4, box_depth-28]) polygon([each finger_joint([0, 0], 32, 0, thickness, 4, true, false)]);
         
-        // 3. Lid & Accessories (Moved far right)
+        // 3. Lid & Accessories
         translate([box_width_new * 3 + 200, 0, 0]) {
-            square([box_width_new + 4, box_depth]); // Lid
-            
-            translate([0, 60]) square([4, 28]); // Handle part
-            translate([100, -10]) square([40, 4]); // Stop part
-            translate([100, box_depth + 10]) square([40, 4]); // Stop part
+            square([box_width_new + 4, box_depth]); 
+            translate([0, 60]) square([4, 28]); 
+            translate([100, -10]) square([40, 4]); 
+            translate([100, box_depth + 10]) square([40, 4]); 
         }
 
         // 4. Side Locking Tabs
         translate([box_width_new * 3 + 196, 4]) polygon([each finger_joint([0, 0], 24, 0, thickness, 4, true, true)]);
         translate([box_width_new * 3 + 196, box_depth - 24]) polygon([each finger_joint([0, 0], 24, 0, thickness, 4, true, true)]);
         
-        // --- NEW: THE MISSING DIVIDER PLATE ---
-        // This generates the actual board to slide into the slots
+        // 5. Divider Plate
         translate([box_width_new * 2 + 100, 0])
             fingered_rect([box_width_new, box_depth], thickness, 4, [[0,0],[0,0],[0,0],[0,0]]);
     }
 
-    // --- CORRECTED CUTS (MOVED TO WALLS) ---
+    // --- CUTS ---
+
+    // 1. Cut on the RIGHT Wall (Target Wall)
+    // Wall X-Start position: box_width_new + thickness + spc
     
-    // 1. Cut on the LEFT Wall (X is negative)
-    // Wall starts at: -total_height - thickness - spc
-    // We want the slot at 'bottom_height' up from the base.
+    // A. The Divider Slot (Stays at bottom_height)
+    translate([box_width_new + thickness + spc + bottom_height, 0, 0])
+        polygon([each finger_joint([0, 0], box_depth, 0, thickness, 4, true, false)]);
+        
+    // B. THE TM1638 CUTOUT (Moved to Bottom Section)
+    // X Position: Start of wall + Half of bottom height (Centers it vertically in the bottom compartment)
+    // Y Position: Half of box depth (Centers it horizontally on the face)
+    translate([
+        box_width_new + thickness + spc + (bottom_height / 2), 
+        box_depth / 2, 
+        0
+    ]) 
+    rotate([0,0,90]) // Rotate 90 deg so the long side runs across the width
+    tm1638_cutout();
+
+
+    // 2. Cut on the LEFT Wall
     translate([-total_height - thickness - spc + bottom_height, 0, 0])
         polygon([each finger_joint([0, 0], box_depth, 0, thickness, 4, true, false)]);
 
-    // 2. Cut on the RIGHT Wall (X is positive)
-    // Wall starts at: box_width_new + thickness + spc
-    translate([box_width_new + thickness + spc + bottom_height, 0, 0])
-         polygon([each finger_joint([0, 0], box_depth, 0, thickness, 4, true, false)]);
-
-    // 3. Cut on the FRONT Wall (Y is negative)
+    // 3. Cut on the FRONT Wall
     translate([0, -total_height - thickness - spc + bottom_height, 0])
         polygon([each finger_joint([0, 0], box_width_new, 1, thickness, 4, false, false)]);
 
-    // 4. Cut on the BACK Wall (Y is positive)
+    // 4. Cut on the BACK Wall
     translate([0, box_depth + thickness + spc + bottom_height, 0])
         polygon([each finger_joint([0, 0], box_width_new, 1, thickness, 4, false, false)]);
 }
