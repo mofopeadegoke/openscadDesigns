@@ -4,7 +4,7 @@
 // --- CONFIGURATION ---
 box_width_new   = 208;  
 box_depth       = 128;  
-bottom_height   = 69;   
+bottom_height   = 68;   // FIXED: Changed to 68 to perfectly align with 4mm thickness grid
 top_height      = 100;  
 thickness       = 4;    
 
@@ -77,34 +77,50 @@ module tm1638_cutout() {
     translate([-tm_hole_w/2, -tm_hole_h/2]) circle(d=tm_screw_d, $fn=20);
 }
 
+// FIXED: Clean square generator for horizontal slots
+module divider_slots_x(length, material_thick, finger_size, start_with_hole=true) {
+    num_slots = floor(length / finger_size);
+    for (i = [0 : num_slots - 1]) {
+        if ((i % 2 == 0) == start_with_hole) {
+            translate([i * finger_size, 0]) square([finger_size, material_thick]);
+        }
+    }
+}
+
+// FIXED: Clean square generator for vertical slots
+module divider_slots_y(length, material_thick, finger_size, start_with_hole=true) {
+    num_slots = floor(length / finger_size);
+    for (i = [0 : num_slots - 1]) {
+        if ((i % 2 == 0) == start_with_hole) {
+            translate([0, i * finger_size]) square([material_thick, finger_size]);
+        }
+    }
+}
+
 // --- MAIN 2D LAYOUT ---
 difference() {
     union() {
         // 1. Box Layout
         fingered_box([box_width_new, box_depth, total_height], thickness = thickness, x_parts = 2, z_parts = 1, y_parts = 2);
         
-        // 2. Tabs
-        translate([-4, 0]) polygon([each finger_joint([0, 0], 32, 0, thickness, 4, true, false)]);
-        translate([-4, box_depth-28]) polygon([each finger_joint([0, 0], 32, 0, thickness, 4, true, false)]);
+        // (Manual polygon tabs removed here to fix duplicate geometry/black blobs)
         
-        // 3. Lid & Accessories
+        // 2. Lid & Accessories
         translate([box_width_new * 3 + 200, 0, 0]) {
             square([box_width_new + 4, box_depth]); 
             translate([0, 60]) square([4, 28]); 
             translate([100, -10]) square([40, 4]); 
             translate([100, box_depth + 10]) square([40, 4]); 
         }
-        translate([box_width_new * 3 + 196, 4]) polygon([each finger_joint([0, 0], 24, 0, thickness, 4, true, true)]);
-        translate([box_width_new * 3 + 196, box_depth - 24]) polygon([each finger_joint([0, 0], 24, 0, thickness, 4, true, true)]);
         
-        // 4. Divider Plate
+        // 3. Divider Plate
         translate([box_width_new * 2 + 100, 0])
             difference() {
                 fingered_rect([box_width_new, box_depth], thickness, 4, [[0,0],[0,0],[0,0],[0,0]]);
                 translate([box_width_new / 2, box_depth - 15]) circle(d=5, $fn=20); 
             }
 
-        // 5. Support Rails (To be laser cut and glued inside)
+        // 4. Support Rails (To be laser cut and glued inside)
         translate([box_width_new * 4 + 250, box_depth + 20]) {
             square([inner_d, 6]); 
             translate([0, 10]) square([inner_d, 6]);
@@ -115,28 +131,32 @@ difference() {
     
     // CUT 1: RIGHT WALL (Controls + Switch)
     translate([box_width_new + thickness + spc, 0, 0]) {
-        // A. Divider Slot
-        translate([bottom_height, 0]) polygon([each finger_joint([0, 0], box_depth, 0, thickness, 4, true, false)]);
+        // A. Divider Slot (FIXED)
+        translate([bottom_height, 0]) divider_slots_y(box_depth, thickness, 4);
         
-        // B. TM1638 Cutout (Centered vertically in bottom compartment)
+        // B. TM1638 Cutout
         translate([bottom_height / 2, box_depth / 2]) rotate([0,0,90]) tm1638_cutout();
         
-        // C. NEW: SWITCH HOLE (21mm)
-        // Placed 18mm from the back edge to avoid the LED module
+        // C. SWITCH HOLE (21mm)
         translate([bottom_height / 2, box_depth - 18]) circle(d=21);
     }
     
     // CUT 2: LEFT WALL
     translate([-total_height - thickness - spc, 0, 0]) {
-        translate([bottom_height, 0]) polygon([each finger_joint([0, 0], box_depth, 0, thickness, 4, true, false)]);
+        // Divider Slot (FIXED)
+        translate([bottom_height, 0]) divider_slots_y(box_depth, thickness, 4);
     }
+    
     // CUT 3: FRONT WALL
     translate([0, -total_height - thickness - spc, 0]) {
-        translate([0, bottom_height]) polygon([each finger_joint([0, 0], box_width_new, 1, thickness, 4, false, false)]);
+        // Divider Slot (FIXED)
+        translate([0, bottom_height]) divider_slots_x(box_width_new, thickness, 4);
     }
+    
     // CUT 4: BACK WALL (Power)
     translate([0, box_depth + thickness + spc, 0]) {
-        translate([0, bottom_height]) polygon([each finger_joint([0, 0], box_width_new, 1, thickness, 4, false, false)]);
+        // Divider Slot (FIXED)
+        translate([0, bottom_height]) divider_slots_x(box_width_new, thickness, 4);
         translate([box_width_new / 2, 25]) circle(d=11, $fn=30);
     }
 }
