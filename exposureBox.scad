@@ -4,7 +4,7 @@
 // --- CONFIGURATION ---
 box_width_new   = 208;  
 box_depth       = 128;  
-bottom_height   = 68;   // FIXED: Changed to 68 to perfectly align with 4mm thickness grid
+bottom_height   = 68;   // Aligned with 4mm grid
 top_height      = 100;  
 thickness       = 4;    
 
@@ -77,7 +77,7 @@ module tm1638_cutout() {
     translate([-tm_hole_w/2, -tm_hole_h/2]) circle(d=tm_screw_d, $fn=20);
 }
 
-// FIXED: Clean square generator for horizontal slots
+// Clean square generator for subtractive slots
 module divider_slots_x(length, material_thick, finger_size, start_with_hole=true) {
     num_slots = floor(length / finger_size);
     for (i = [0 : num_slots - 1]) {
@@ -86,12 +86,20 @@ module divider_slots_x(length, material_thick, finger_size, start_with_hole=true
         }
     }
 }
-
-// FIXED: Clean square generator for vertical slots
 module divider_slots_y(length, material_thick, finger_size, start_with_hole=true) {
     num_slots = floor(length / finger_size);
     for (i = [0 : num_slots - 1]) {
         if ((i % 2 == 0) == start_with_hole) {
+            translate([0, i * finger_size]) square([material_thick, finger_size]);
+        }
+    }
+}
+
+// Generates teeth attached directly to a surface (used for Lid and Wall Hinges)
+module lid_hinge_teeth(length, material_thick, finger_size, start_with_tab=true) {
+    num_tabs = floor(length / finger_size);
+    for (i = [0 : num_tabs - 1]) {
+        if ((i % 2 == 0) == start_with_tab) {
             translate([0, i * finger_size]) square([material_thick, finger_size]);
         }
     }
@@ -103,9 +111,15 @@ difference() {
         // 1. Box Layout
         fingered_box([box_width_new, box_depth, total_height], thickness = thickness, x_parts = 2, z_parts = 1, y_parts = 2);
         
-        // (Manual polygon tabs removed here to fix duplicate geometry/black blobs)
+        // --- THIS IS THE FIX ---
+        // 2. Hinges on the Left Wall (Where you circled!)
+        // These are 24mm long and set to 'false' so they perfectly mate with the Lid's 'true' tabs
+        translate([-total_height - thickness*2 - spc, 4]) 
+            lid_hinge_teeth(24, thickness, 4, false);
+        translate([-total_height - thickness*2 - spc, box_depth - 24]) 
+            lid_hinge_teeth(24, thickness, 4, false);
         
-        // 2. Lid & Accessories
+        // 3. Lid & Accessories
         translate([box_width_new * 3 + 200, 0, 0]) {
             square([box_width_new + 4, box_depth]); 
             translate([0, 60]) square([4, 28]); 
@@ -113,14 +127,18 @@ difference() {
             translate([100, box_depth + 10]) square([40, 4]); 
         }
         
-        // 3. Divider Plate
+        // Lid Hinges
+        translate([box_width_new * 3 + 196, 4]) lid_hinge_teeth(24, thickness, 4, true);
+        translate([box_width_new * 3 + 196, box_depth - 24]) lid_hinge_teeth(24, thickness, 4, true);
+        
+        // 4. Divider Plate
         translate([box_width_new * 2 + 100, 0])
             difference() {
                 fingered_rect([box_width_new, box_depth], thickness, 4, [[0,0],[0,0],[0,0],[0,0]]);
                 translate([box_width_new / 2, box_depth - 15]) circle(d=5, $fn=20); 
             }
 
-        // 4. Support Rails (To be laser cut and glued inside)
+        // 5. Support Rails
         translate([box_width_new * 4 + 250, box_depth + 20]) {
             square([inner_d, 6]); 
             translate([0, 10]) square([inner_d, 6]);
@@ -131,31 +149,23 @@ difference() {
     
     // CUT 1: RIGHT WALL (Controls + Switch)
     translate([box_width_new + thickness + spc, 0, 0]) {
-        // A. Divider Slot (FIXED)
         translate([bottom_height, 0]) divider_slots_y(box_depth, thickness, 4);
-        
-        // B. TM1638 Cutout
         translate([bottom_height / 2, box_depth / 2]) rotate([0,0,90]) tm1638_cutout();
-        
-        // C. SWITCH HOLE (21mm)
         translate([bottom_height / 2, box_depth - 18]) circle(d=21);
     }
     
     // CUT 2: LEFT WALL
     translate([-total_height - thickness - spc, 0, 0]) {
-        // Divider Slot (FIXED)
-        translate([bottom_height, 0]) divider_slots_y(box_depth, thickness, 4);
+        translate([total_height - bottom_height - thickness, 0]) divider_slots_y(box_depth, thickness, 4);
     }
     
     // CUT 3: FRONT WALL
     translate([0, -total_height - thickness - spc, 0]) {
-        // Divider Slot (FIXED)
-        translate([0, bottom_height]) divider_slots_x(box_width_new, thickness, 4);
+        translate([0, total_height - bottom_height - thickness]) divider_slots_x(box_width_new, thickness, 4);
     }
     
     // CUT 4: BACK WALL (Power)
     translate([0, box_depth + thickness + spc, 0]) {
-        // Divider Slot (FIXED)
         translate([0, bottom_height]) divider_slots_x(box_width_new, thickness, 4);
         translate([box_width_new / 2, 25]) circle(d=11, $fn=30);
     }
