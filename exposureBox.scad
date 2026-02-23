@@ -15,8 +15,6 @@ inner_d = box_depth - (2 * thickness) - 1;
 tm_hole_w = 68;    
 tm_hole_h = 40;    
 tm_screw_d = 2.5;  
-tm_window_w = 64;  
-tm_window_h = 38;  
 
 total_height = bottom_height + thickness + top_height;
 spc = thickness + 1;
@@ -69,14 +67,6 @@ module fingered_box(size, thickness, finger_width = "", spacing = -1, x_parts = 
     if(z_parts > 1) translate([size[0]+thickness+spc + ((x_parts > 1) ? size[2]+thickness+spc : 0), 0]) fingered_rect([size[0], size[1]], thickness, finger_width, [[If(y_parts<2, -1, 1), 1], [If(y_parts<1, -1, 1), 0], [If(x_parts<2, -1, 0), 0], [If(x_parts<1, -1, 0), 1]]);
 }
 
-module tm1638_cutout() {
-    square([tm_window_w, tm_window_h], center=true);
-    translate([tm_hole_w/2, tm_hole_h/2]) circle(d=tm_screw_d, $fn=20);
-    translate([-tm_hole_w/2, tm_hole_h/2]) circle(d=tm_screw_d, $fn=20);
-    translate([tm_hole_w/2, -tm_hole_h/2]) circle(d=tm_screw_d, $fn=20);
-    translate([-tm_hole_w/2, -tm_hole_h/2]) circle(d=tm_screw_d, $fn=20);
-}
-
 // Clean square generator for subtractive slots
 module divider_slots_x(length, material_thick, finger_size, start_with_hole=true) {
     num_slots = floor(length / finger_size);
@@ -105,15 +95,27 @@ module lid_hinge_teeth(length, material_thick, finger_size, start_with_tab=true)
     }
 }
 
+module tm1638_cutout() {
+    // --- UPDATED TM1638 CUTOUT ---
+    // This cross-shape cuts out all the space for the LEDs, buttons, and pins
+    // while leaving exactly 4 solid "tabs" in the corners for the screws.
+    square([74, 30], center=true); // Horizontal cut (clears left/right pins)
+    square([58, 48], center=true); // Vertical cut (clears top LEDs & bottom buttons)
+
+    // Screw Holes
+    translate([tm_hole_w/2, tm_hole_h/2]) circle(d=tm_screw_d, $fn=20);
+    translate([-tm_hole_w/2, tm_hole_h/2]) circle(d=tm_screw_d, $fn=20);
+    translate([tm_hole_w/2, -tm_hole_h/2]) circle(d=tm_screw_d, $fn=20);
+    translate([-tm_hole_w/2, -tm_hole_h/2]) circle(d=tm_screw_d, $fn=20);
+}
+
 // --- MAIN 2D LAYOUT ---
 difference() {
     union() {
         // 1. Box Layout
         fingered_box([box_width_new, box_depth, total_height], thickness = thickness, x_parts = 2, z_parts = 1, y_parts = 2);
         
-        // --- THIS IS THE FIX ---
-        // 2. Hinges on the Left Wall (Where you circled!)
-        // These are 24mm long and set to 'false' so they perfectly mate with the Lid's 'true' tabs
+        // 2. Hinges on the Left Wall 
         translate([-total_height - thickness*2 - spc, 4]) 
             lid_hinge_teeth(24, thickness, 4, false);
         translate([-total_height - thickness*2 - spc, box_depth - 24]) 
@@ -150,8 +152,12 @@ difference() {
     // CUT 1: RIGHT WALL (Controls + Switch)
     translate([box_width_new + thickness + spc, 0, 0]) {
         translate([bottom_height, 0]) divider_slots_y(box_depth, thickness, 4);
-        translate([bottom_height / 2, box_depth / 2]) rotate([0,0,90]) tm1638_cutout();
-        translate([bottom_height / 2, box_depth - 18]) circle(d=21);
+        
+        // MOVED DOWN: Centered at Y=50
+        translate([bottom_height / 2, 50]) rotate([0,0,90]) tm1638_cutout();
+        
+        // MOVED UP: Centered at Y=110
+        translate([bottom_height / 2, 110]) circle(d=21);
     }
     
     // CUT 2: LEFT WALL
