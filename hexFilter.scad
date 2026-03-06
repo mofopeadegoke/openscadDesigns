@@ -17,10 +17,10 @@ filter_w = box_inner_width - clearance;
 filter_d = box_inner_depth - clearance; 
 
 // --- 3. 3D PRINT SETTINGS ---
-filter_height = 5;      // Total thickness of the print (Z-axis)
-hex_radius    = 6;      // Radius of the individual honeycomb holes
-hex_wall      = 1.2;    // Thickness of the walls between hexagons
-border_width  = 6;      // Solid plastic frame around the outside for strength
+filter_height = 10;      // Total thickness of the print (Z-axis)
+hex_radius    = 4;      // Radius of the individual honeycomb holes
+hex_wall      = 0.4;    // Thickness of the walls between hexagons
+border_width  = 4;      // Solid plastic frame around the outside for strength
 
 // --- 4. GENERATION ---
 difference() {
