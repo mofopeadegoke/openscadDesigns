@@ -2,25 +2,24 @@
 // RENDER THIS AND EXPORT AS DXF
 
 // --- CONFIGURATION ---
-box_width_new   = 208;
-box_depth       = 128;
+box_width_new   = 208;  
+box_depth       = 128;  
 bottom_height   = 68;   // Aligned with 4mm grid
-top_height      = 100;
-thickness       = 4;
+top_height      = 100;  
+thickness       = 4;    
 
 // --- TEXT & LOGO SETTINGS ---
-// Change these names to whatever you like!
-project_names = ["Project Team", "Prof. Cem Kalyoncu", "Daniel Adegoke", "Immaculata Umoh", "Mujhaid Akanayo"];
-text_size = 6;       // Font size for the names
-logo_size = 25;      // Size of the logo placeholder
+project_names = ["Prof. Cem Kalyoncu", "Daniel Adegoke", "Immaculata Umoh", "Mujhaid Akanayo", ];
+text_size = 7;       
+text_font = "Palatino Linotype";  // Change if needed
 
 // Internal dimensions for Rails
 inner_d = box_depth - (2 * thickness) - 1;
 
 // TM1638 Module Dimensions
-tm_hole_w = 68;
-tm_hole_h = 40;
-tm_screw_d = 2.5;
+tm_hole_w = 68;    
+tm_hole_h = 40;    
+tm_screw_d = 2.5;  
 
 total_height = bottom_height + thickness + top_height;
 spc = thickness + 1;
@@ -31,21 +30,21 @@ function reverse(list) = [for (i = [len(list)-1:-1:0]) list[i]];
 function If(condition, t, f) = condition ? t : f;
 function ReverseIf(condition, data) = condition ? reverse(data) : data;
 
-function finger_joint_regular(start, length, dir, offset, size, blank) =
+function finger_joint_regular(start, length, dir, offset, size, blank) = 
     let(sz = size, l = length, st = start)
     (dir == 1 ?
-        cat([for(i=[1:floor(l/sz)]) each If((i%2 == (blank ? 0:1)), [[st[0]+i*sz, st[1]], [st[0]+i*sz, st[1]+offset]], [[st[0]+i*sz, st[1]+offset], [st[0]+i*sz, st[1]]])], If(l/size == floor(l/size), [], If(floor(length/sz)%2 == (blank ? 0:1), [[st[0]+l, st[1]+offset]], [[st[0]+l, st[1]]]))) :
+        cat([for(i=[1:floor(l/sz)]) each If((i%2 == (blank ? 0:1)), [[st[0]+i*sz, st[1]], [st[0]+i*sz, st[1]+offset]], [[st[0]+i*sz, st[1]+offset], [st[0]+i*sz, st[1]]])], If(l/size == floor(l/size), [], If(floor(length/sz)%2 == (blank ? 0:1), [[st[0]+l, st[1]+offset]], [[st[0]+l, st[1]]]))) : 
         cat([for(i=[1:floor(l/sz)]) each If((i%2 == (blank ? 0:1)), [[st[0], st[1]+i*sz], [st[0]+offset, st[1]+i*sz]], [[st[0]+offset, st[1]+i*sz], [st[0], st[1]+i*sz]])], If(l/size == floor(l/size), [], If(floor(l/sz)%2 == (blank ? 0:1), [[st[0]+offset, st[1]+l]], [[st[0], st[1]+l]])))
     );
 
-function finger_joint_reversed(start, length, dir, offset, size, blank) =
+function finger_joint_reversed(start, length, dir, offset, size, blank) = 
     let(sz = -size, l = -length, st = (dir == 1 ? [start[0] + length, start[1]] : [start[0], start[1] + length]))
     reverse(dir == 1 ?
-        cat(If(l/size == floor(l/size), [], If(blank, [[st[0], st[1]+offset]], [[st[0], st[1]]])), [for(i=[1:floor(l/sz)]) each If((i%2 == (blank ? 0:1)), [[st[0]+i*sz, st[1]], [st[0]+i*sz, st[1]+offset]], [[st[0]+i*sz, st[1]+offset], [st[0]+i*sz, st[1]]])]) :
+        cat(If(l/size == floor(l/size), [], If(blank, [[st[0], st[1]+offset]], [[st[0], st[1]]])), [for(i=[1:floor(l/sz)]) each If((i%2 == (blank ? 0:1)), [[st[0]+i*sz, st[1]], [st[0]+i*sz, st[1]+offset]], [[st[0]+i*sz, st[1]+offset], [st[0]+i*sz, st[1]]])]) : 
         cat(If(l/size == floor(l/size), [], If(blank, [[st[0]+offset, st[1]]], [[st[0], st[1]]])), [for(i=[1:floor(l/sz)]) each If((i%2 == (blank ? 0:1)), [[st[0], st[1]+i*sz], [st[0]+offset, st[1]+i*sz]], [[st[0]+offset, st[1]+i*sz], [st[0], st[1]+i*sz]])])
     );
 
-function finger_joint(start, length, dir, offset, size, reversed = false, blank = false) =
+function finger_joint(start, length, dir, offset, size, reversed = false, blank = false) = 
     reversed ? finger_joint_reversed(start, length, dir, offset, size, blank) : finger_joint_regular(start, length, dir, offset, size, blank);
 
 module fingered_rect(size, thickness, finger_width = "", side_setup = [[0, 0], [0, 1], [0, 0], [0, 1]]) {
@@ -102,13 +101,9 @@ module lid_hinge_teeth(length, material_thick, finger_size, start_with_tab=true)
 }
 
 module tm1638_cutout() {
-    // --- UPDATED TM1638 CUTOUT ---
-    // This cross-shape cuts out all the space for the LEDs, buttons, and pins
-    // while leaving exactly 4 solid "tabs" in the corners for the screws.
-    square([74, 30], center=true); // Horizontal cut (clears left/right pins)
-    square([58, 48], center=true); // Vertical cut (clears top LEDs & bottom buttons)
+    square([74, 30], center=true); 
+    square([58, 48], center=true); 
 
-    // Screw Holes
     translate([tm_hole_w/2, tm_hole_h/2]) circle(d=tm_screw_d, $fn=20);
     translate([-tm_hole_w/2, tm_hole_h/2]) circle(d=tm_screw_d, $fn=20);
     translate([tm_hole_w/2, -tm_hole_h/2]) circle(d=tm_screw_d, $fn=20);
@@ -129,7 +124,9 @@ difference() {
 
         // 3. Lid & Accessories
         translate([box_width_new * 3 + 200, 0, 0]) {
-            square([box_width_new + 4, box_depth]);
+            // EXACT OUTER DIMENSIONS FOR THE LID
+            square([box_width_new, box_depth]);
+            
             translate([0, 60]) square([4, 28]);
             translate([100, -10]) square([40, 4]);
             translate([100, box_depth + 10]) square([40, 4]);
@@ -158,34 +155,13 @@ difference() {
     // CUT 1: RIGHT WALL (Controls + Switch)
     translate([box_width_new + thickness + spc, 0, 0]) {
         translate([bottom_height, 0]) divider_slots_y(box_depth, thickness, 4);
-
-        // MOVED DOWN: Centered at Y=50
         translate([bottom_height / 2, 50]) rotate([0,0,90]) tm1638_cutout();
-
-        // MOVED UP: Centered at Y=110
         translate([bottom_height / 2, 110]) circle(d=21);
     }
 
-    // CUT 2: LEFT WALL (Names & Logo)
+    // CUT 2: LEFT WALL 
     translate([-total_height - thickness - spc, 0, 0]) {
-        // A. Divider Slots
         translate([total_height - bottom_height - thickness, 0]) divider_slots_y(box_depth, thickness, 4);
-
-        // B. Names and Logo
-        // This places them on the upper part of the wall
-        
-        translate([total_height - bottom_height + 10, box_depth/2]) {
-            rotate([0, 0, 90])
-            translate([-20, 69]) 
-            scale([0.4, 0.4])
-            import("eul.svg");
-            for (i = [0 : len(project_names) - 1]) {
-                rotate([0, 0, 90])
-                translate([0, -i * (text_size * 1.8)+65]) {
-                    text(project_names[i], size=text_size, halign="center", valign="center");
-                }
-            }
-        }
     }
 
     // CUT 3: FRONT WALL
@@ -198,4 +174,56 @@ difference() {
         translate([0, bottom_height]) divider_slots_x(box_width_new, thickness, 4);
         translate([box_width_new / 2, 25]) circle(d=11, $fn=30);
     }
+    
+    // CUT 5: THE LID (Names & Logo)
+    // We navigate to the Lid's coordinate space on the far right
+    translate([box_width_new * 3 + 200, 0, 0]) {
+        // Center the graphics on the lid itself
+        translate([box_width_new / 2, box_depth / 2]) {
+            // -- YOUR EXACT LOGO/TEXT CODE --
+            rotate([0, 0, 90])
+            translate([-25, 20]) 
+            scale([0.5, 0.5])
+            import("eul.svg");
+            
+            for (i = [0 : len(project_names) - 1]) {
+                rotate([0, 0, 90])
+                translate([0, -i * (text_size * 1.8)+5]) {
+                    text(project_names[i], size=text_size, font=text_font, halign="center", valign="center");
+                }
+            }
+        }
+    }
 }
+
+translate([208, -190, 0])
+rotate([0, 0, 90])
+#square([4, 208]);
+
+translate([208, -220, 0])
+rotate([0, 0, 90])
+#square([4, 208]);
+
+translate([128, -240, 0])
+rotate([0, 0, 90])
+#square([4, 128]);
+
+translate([128, -260, 0])
+rotate([0, 0, 90])
+#square([4, 128]);
+
+translate([100, -280, 0])
+rotate([0, 0, 90])
+#square([6, 100]);
+
+translate([100, -300, 0])
+rotate([0, 0, 90])
+#square([6, 100]);
+
+translate([80, -320, 0])
+rotate([0, 0, 90])
+#square([6, 80]);
+
+translate([80, -340, 0])
+rotate([0, 0, 90])
+#square([6, 80]);
