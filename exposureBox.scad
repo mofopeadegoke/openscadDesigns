@@ -9,7 +9,7 @@ top_height      = 100;
 thickness       = 4;    
 
 // --- TEXT & LOGO SETTINGS ---
-project_names = ["Prof. Cem Kalyoncu", "Daniel Adegoke", "Immaculata Umoh", "Mujhaid Akanayo", ];
+project_names = ["Cem Kalyoncu", "Daniel Adegoke", "Immaculata Umoh", "Mujhaid Akanayo"];
 text_size = 7;       
 text_font = "Palatino Linotype";  // Change if needed
 
@@ -124,8 +124,12 @@ difference() {
 
         // 3. Lid & Accessories
         translate([box_width_new * 3 + 200, 0, 0]) {
-            // EXACT OUTER DIMENSIONS FOR THE LID
-            square([box_width_new, box_depth]);
+            // NEW EXACT OUTER DIMENSIONS FOR THE LID
+            // Offset by -thickness to perfectly center it over the box walls
+            // Width is expanded by 2 * thickness (4mm left, 4mm right)
+            // Depth is expanded by 1 * thickness (4mm extra for the height/back)
+            translate([-thickness, 0]) 
+                square([box_width_new + (2 * thickness), box_depth + thickness]);
             
             translate([0, 60]) square([4, 28]);
             translate([100, -10]) square([40, 4]);
@@ -133,8 +137,9 @@ difference() {
         }
 
         // Lid Hinges
-        translate([box_width_new * 3 + 196, 4]) lid_hinge_teeth(24, thickness, 4, true);
-        translate([box_width_new * 3 + 196, box_depth - 24]) lid_hinge_teeth(24, thickness, 4, true);
+        // Shifted left by -thickness so the cutout subtracts at the correct edge
+        translate([box_width_new * 3 + 196 - thickness, 4]) lid_hinge_teeth(24, thickness, 4, true);
+        translate([box_width_new * 3 + 196 - thickness, box_depth - 24]) lid_hinge_teeth(24, thickness, 4, true);
 
         // 4. Divider Plate
         translate([box_width_new * 2 + 100, 0])
@@ -178,13 +183,13 @@ difference() {
     // CUT 5: THE LID (Names & Logo)
     // We navigate to the Lid's coordinate space on the far right
     translate([box_width_new * 3 + 200, 0, 0]) {
-        // Center the graphics on the lid itself
-        translate([box_width_new / 2, box_depth / 2]) {
+        // Center the graphics on the NEW expanded lid dimensions
+        translate([box_width_new / 2, (box_depth + thickness) / 2]) {
             // -- YOUR EXACT LOGO/TEXT CODE --
             rotate([0, 0, 90])
             translate([-25, 20]) 
-            scale([0.5, 0.5])
-            import("eul.svg");
+            scale([1.6, 1.6])
+            import("eul-logo.svg");
             
             for (i = [0 : len(project_names) - 1]) {
                 rotate([0, 0, 90])
@@ -198,19 +203,19 @@ difference() {
 
 translate([208, -190, 0])
 rotate([0, 0, 90])
-#square([4, 208]);
+#square([8, 208]);
 
 translate([208, -220, 0])
 rotate([0, 0, 90])
-#square([4, 208]);
+#square([8, 208]);
 
 translate([128, -240, 0])
 rotate([0, 0, 90])
-#square([4, 128]);
+#square([8, 128]);
 
 translate([128, -260, 0])
 rotate([0, 0, 90])
-#square([, 128]);
+#square([8, 128]);
 
 translate([100, -280, 0])
 rotate([0, 0, 90])
