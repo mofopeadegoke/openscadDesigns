@@ -124,12 +124,8 @@ difference() {
 
         // 3. Lid & Accessories
         translate([box_width_new * 3 + 200, 0, 0]) {
-            // NEW EXACT OUTER DIMENSIONS FOR THE LID
-            // Offset by -thickness to perfectly center it over the box walls
-            // Width is expanded by 2 * thickness (4mm left, 4mm right)
-            // Depth is expanded by 1 * thickness (4mm extra for the height/back)
-            translate([-thickness, 0]) 
-                square([box_width_new + (2 * thickness), box_depth + thickness]);
+            translate([-thickness, -thickness]) 
+                square([box_width_new + (2 * thickness), box_depth + (2 * thickness)]);
             
             translate([0, 60]) square([4, 28]);
             translate([100, -10]) square([40, 4]);
@@ -181,18 +177,29 @@ difference() {
     }
     
     // CUT 5: THE LID (Names & Logo)
-    // We navigate to the Lid's coordinate space on the far right
     translate([box_width_new * 3 + 200, 0, 0]) {
-        // Center the graphics on the NEW expanded lid dimensions
-        translate([box_width_new / 2, (box_depth + thickness) / 2]) {
+        // Now that the lid overhang is perfectly symmetrical (-thickness on all sides), 
+        // the true center is exactly box_width_new / 2 and box_depth / 2 again!
+        translate([box_width_new / 2, box_depth / 2]) {
             // -- YOUR EXACT LOGO/TEXT CODE --
             rotate([0, 0, 90])
-            translate([-25, 20]) 
-            scale([1.6, 1.6])
+            translate([-22, 75]) 
+            scale([0.06, 0.06])
+            import("cezerilab-logo.svg");
+            
+            rotate([0, 0, 90])
+            translate([-16, 18]) 
+            scale([1, 1])
             import("eul-logo.svg");
+            
+            rotate([0, 0, 90])
+            translate([-25, 0]) 
+            scale([0.1, 0.1])
+            import("tika_logo.svg");
             
             for (i = [0 : len(project_names) - 1]) {
                 rotate([0, 0, 90])
+                translate([0, -20])
                 translate([0, -i * (text_size * 1.8)+5]) {
                     text(project_names[i], size=text_size, font=text_font, halign="center", valign="center");
                 }
@@ -200,35 +207,11 @@ difference() {
         }
     }
 }
-
-translate([208, -190, 0])
-rotate([0, 0, 90])
-#square([8, 208]);
-
-translate([208, -220, 0])
-rotate([0, 0, 90])
-#square([8, 208]);
-
-translate([128, -240, 0])
-rotate([0, 0, 90])
-#square([8, 128]);
-
-translate([128, -260, 0])
-rotate([0, 0, 90])
-#square([8, 128]);
-
-translate([100, -280, 0])
-rotate([0, 0, 90])
-#square([6, 100]);
-
-translate([100, -300, 0])
-rotate([0, 0, 90])
-#square([6, 100]);
-
-translate([80, -320, 0])
-rotate([0, 0, 90])
-#square([6, 80]);
-
-translate([80, -340, 0])
-rotate([0, 0, 90])
-#square([6, 80]);
+translate([208, -190, 0]) rotate([0, 0, 90]) #square([4, 208]);
+translate([208, -220, 0]) rotate([0, 0, 90]) #square([4, 208]);
+translate([128, -240, 0]) rotate([0, 0, 90]) #square([4, 128]);
+translate([128, -260, 0]) rotate([0, 0, 90]) #square([6, 128]);
+translate([100, -280, 0]) rotate([0, 0, 90]) #square([6, 100]);
+translate([100, -300, 0]) rotate([0, 0, 90]) #square([6, 100]);
+translate([80, -320, 0]) rotate([0, 0, 90]) #square([6, 80]);
+translate([80, -340, 0]) rotate([0, 0, 90]) #square([6, 80]);
